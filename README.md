@@ -25,6 +25,7 @@
 
 
 <h5>Additional Info</h5>
+
 >The functions will be added as much as I can think of and for the bot to be stable
 >You can also join my discord and test that out :)
 >https://discordapp.com/invite/CpBNXF4
