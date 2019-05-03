@@ -2,8 +2,8 @@ const config = require("./../config.js");
 const ytdl = require("ytdl-core");
 const path = require("path");
 const scriptName = path.basename(__filename);
-var que = [];
 const streamOptions = { seek: 0, volume: 1 };
+var que = [];
 
 module.exports = () => {
   console.log("Loaded: " + scriptName);
@@ -15,16 +15,24 @@ module.exports.play = async (message, client) => {
   let ytLink = split[1];
   let vc = message.member.voiceChannelID;
   const channel = client.channels.get(vc);
-  if (que.length == 0) {
-    message.channel.fetchMessages({ limit: 1 }).then(messages => {
-      let lastMessage = messages.first();
-      lastMessage.delete();
-    });
-    que.push(ytLink);
-    playMusic(message, channel, que[0]);
-  } else if (que.length > 0) {
-    que.push(ytLink);
-    message.channel.send(":musical_note: Added To Que: " + que.length);
+  if (ytLink == undefined) {
+    message.channel.send(":warning: Write YT Link :warning:");
+    return;
+  }
+  if (ytLink.includes("https://www.youtube.com/watch?v=")) {
+    if (que.length == 0) {
+      message.channel.fetchMessages({ limit: 1 }).then(messages => {
+        let lastMessage = messages.first();
+        lastMessage.delete();
+      });
+      que.push(ytLink);
+      playMusic(message, channel, que[0]);
+    } else if (que.length > 0) {
+      que.push(ytLink);
+      message.channel.send(":musical_note: Added To Que: " + que.length);
+    }
+  } else {
+    message.channel.send(":warning: Write Correct YT Link :warning:");
   }
 };
 
