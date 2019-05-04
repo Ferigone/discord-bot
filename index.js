@@ -3,6 +3,7 @@ const client = new Discord.Client();
 const config = require("./config.js");
 
 //Commands
+console.log("Loading Commands...");
 const help = require("./commands/help.js");
 help();
 const role = require("./commands/role.js");
@@ -13,6 +14,8 @@ const say = require("./commands/say.js");
 say();
 const music = require("./commands/music.js");
 music();
+const calc = require("./commands/calc.js");
+calc();
 
 //Variables
 const prefix = config.arr[0].prefix;
@@ -94,6 +97,8 @@ client.on("message", async (message, guild) => {
       music.play(message, client);
     } else if (command === "leave") {
       music.leave(message, client);
+    } else if (command === "calc") {
+      calc.run(message);
     }
   }
 });
