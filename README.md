@@ -11,6 +11,7 @@
 >`help` -> List all commands <br/>
 >`say` -> allows writing messages throught bot on specific channels e.g //say general "dick" <br/>
 >`purge` -> deleting specified amount of messages on channel where we typed this command e.g //purge 10<br/>
+>`calc` -> making calculation on numbers whitch we provide e.g //calc 10+10*2 And bot respond "Result: 30"
 
 <h4>Music Commands</h4>
 
@@ -22,7 +23,6 @@
 >`addRole` -> adding existing role to user whitch type this command e.g //addRole DJ<br/>
 >`rmRole` -> removing role from user whitch type this command e.g //rmRole DJ<br/>
 >`createRole` -> this command allow to create new server role with specified color and name e.g //creatRole DJ #ffaaff<br/>
-
 
 <h5>Additional Info</h5>
 
