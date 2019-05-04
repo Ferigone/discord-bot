@@ -61,9 +61,9 @@ const playMusic = (m, h, y, g) => {
       });
       const dispatcher = connection.playStream(stream, streamOptions);
       dispatcher.on("end", () => {
-        remove(eval(`que[0][${guildID}]`), link);
+        remove(eval(`que[0][${guildID}]`), eval(`que[0][${guildID}][0]`));
         if (eval(`que[0][${guildID}][0]`) != undefined) {
-          playMusic(message, channel, eval(`que[0][${guildID}][0]`));
+          playMusic(message, channel, eval(`que[0][${guildID}][0]`), guildID);
         } else {
           if (que.length == 0) {
             setTimeout(() => {
