@@ -1,4 +1,4 @@
-const config = require("./../config.js");
+const config = require("../modules/config.js");
 const path = require("path");
 const scriptName = path.basename(__filename);
 
@@ -19,17 +19,13 @@ module.exports.run = async message => {
         if (lastMessage == undefined) {
           clearInterval(forInterval);
         } else {
-          try {
-            lastMessage.delete();
-          } catch (e) {
-            console.log("");
-          }
+          lastMessage.delete().catch(e => {});
         }
       })
       .catch(e => {
-        console.error("");
+        console.log(e);
       });
-    if (startValue == messAmount + 1) {
+    if (startValue == messAmount) {
       clearInterval(forInterval);
     }
     startValue += 1;

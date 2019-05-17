@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
-const config = require("./config.js");
+const config = require("./modules/config.js");
 
 //Commands
 console.log("Loading Commands...");
@@ -16,6 +16,11 @@ const music = require("./commands/music.js");
 music();
 const calc = require("./commands/calc.js");
 calc();
+const rolePerms = require("./commands/rolePerm.js");
+rolePerms();
+console.log("\nLoading Modules...");
+const hasRole = require("./modules/hasRole.js");
+hasRole();
 
 //Variables
 const prefix = config.arr[0].prefix;
@@ -24,7 +29,7 @@ let start = 0;
 
 //Code
 client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`\nLogged in as ${client.user.tag}!`);
 });
 
 client.on("ready", () => {
@@ -99,8 +104,14 @@ client.on("message", async (message, guild) => {
       music.leave(message, client);
     } else if (command === "calc") {
       calc.run(message);
+    } else if (command === "skip") {
+      music.skip(message);
     }
   }
 });
 
-client.login(authKey);
+try {
+  client.login(authKey);
+} catch (err) {
+  console.error(err.message);
+}

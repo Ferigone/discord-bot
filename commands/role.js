@@ -1,4 +1,4 @@
-const config = require("../config.js");
+const config = require("../modules/config.js");
 const path = require("path");
 const scriptName = path.basename(__filename);
 
