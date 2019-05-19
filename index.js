@@ -106,6 +106,12 @@ client.on("message", async (message, guild) => {
       calc.run(message);
     } else if (command === "skip") {
       music.skip(message);
+    } else if (command === "volume") {
+      music.volume(message);
+    } else if (command === "clearq") {
+      music.clearq(message);
+    } else if (command === "showq") {
+      music.showq(message, client);
     }
   }
 });

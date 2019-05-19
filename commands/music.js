@@ -8,21 +8,16 @@ const request = require("request");
 const cheerio = require("cheerio");
 const query = "https://www.youtube.com/results?search_query=";
 const yt = "https://www.youtube.com";
-var playStatus = true;
-var que = [{}];
+const queue = new Map();
 
 module.exports = () => {
   console.log("Loaded: " + scriptName);
 };
 
 module.exports.play = async (message, client) => {
-  if (hasRole.check(message, "@everyone") != true) return;
-
-  let guildID = message.guild.id;
-  if (eval(`que[0][${guildID}]`) === undefined) {
-    eval(`que[0][${guildID}]=[]`);
-  }
-
+  if (hasRole.check(message, "DJ") != true) return;
+  const channel = client.channels.get(message.member.voiceChannelID);
+  const serverQueue = queue.get(message.guild.id);
   // //Inside Varialbes
   let queryData = message.content
     .split(" ")
@@ -32,42 +27,64 @@ module.exports.play = async (message, client) => {
     message.channel.send(":warning: Missing query! :warning:");
     return;
   }
-  let vc = message.member.voiceChannelID;
-  const channel = client.channels.get(vc);
   message.channel.send("Searching 🔎 `" + queryData + "`");
   request(
     {
       uri: query + queryData
     },
-    function(error, response, body) {
+    async (error, response, body) => {
       let $ = cheerio.load(body);
-
-      $(".contains-addto > a").each(function(i, item) {
+      $(".yt-uix-tile-link").each(function(i, item) {
         if (i === 0) {
-          let link = $(item);
-          let href = link.attr("href");
-          let ytLink = yt + href;
+          let title = $(item).attr("title");
+          let link = yt + $(item).attr("href");
           // //If statements
-          if (ytLink == undefined) {
+          if (link == undefined) {
             message.channel.send(":warning: Search Error :warning:");
             return;
           }
-          if (!ytLink.includes("https://www.youtube.com/watch?v=")) {
-            message.channel.send(":warning: Write Correct YT Link :warning:");
+          if (!link.includes("https://www.youtube.com/watch?v=")) {
+            message.channel.send(":warning: Search Error :warning:");
             return;
           }
-          message.channel.send("Search result: " + ytLink);
-          eval(`que[0][${guildID}].push('${ytLink}')`);
-          if (eval(`que[0][${guildID}].length==1`)) {
-            message.channel.fetchMessages({ limit: 1 }).then(messages => {
-              let lastMessage = messages.first();
-              lastMessage.delete();
-            });
-            playMusic(message, channel, eval(`que[0][${guildID}]`), guildID);
+          const song = {
+            title: title,
+            url: link
+          };
+          message.channel.send("Search result: " + link);
+          if (!serverQueue) {
+            const queueContruct = {
+              textChannel: message.channel,
+              voiceChannel: channel,
+              connection: null,
+              songs: [],
+              volume: 0.5,
+              playing: true
+            };
+
+            queue.set(message.guild.id, queueContruct);
+
+            queueContruct.songs.push(song);
+
+            try {
+              channel.join().then(connection => {
+                queueContruct.connection = connection;
+                message.channel.fetchMessages({ limit: 1 }).then(messages => {
+                  let lastMessage = messages.first();
+                  lastMessage.delete();
+                });
+                playMusic(message.guild, message);
+              });
+            } catch (err) {
+              //console.log(err);
+              queue.delete(message.guild.id);
+              message.channel.send(err);
+              return;
+            }
           } else {
+            serverQueue.songs.push(song);
             message.channel.send(
-              ":musical_note: Added To Que: " +
-                eval(`que[0][${guildID}].length`)
+              `:musical_note: Added to queue: ${serverQueue.songs.length}`
             );
             return;
           }
@@ -77,54 +94,86 @@ module.exports.play = async (message, client) => {
   );
 };
 
-const playMusic = (m, h, y, g) => {
-  let message = m;
-  let channel = h;
-  let link = y;
-  let guildID = g;
+const playMusic = (guild, message) => {
+  const serverQueue = queue.get(guild.id);
+  if (serverQueue.songs.length < 1) {
+    queue.delete(guild.id);
+    return;
+  }
   message.channel.send(`:musical_note: Actually playing:`);
-  message.channel.send(`:arrow_forward:  ${link}`);
-  channel
-    .join()
-    .then(connection => {
-      global.stream = ytdl(`${link}`, {
-        filter: "audioonly"
-      });
-      global.dispatcher = connection.playStream(stream, streamOptions);
-      dispatcher.on("end", () => {
-        message.channel.send(
-          ":musical_note: Que: " + eval(`que[0][${guildID}].length`)
-        );
-        if (playStatus == false) {
-          eval(`que[0][${guildID}]=[]`);
-          playStatus = true;
-          return;
-        }
-        if (eval(`que[0][${guildID}].length`) != 1) {
-          playMusic(
-            message,
-            channel,
-            eval(`que[0][${guildID}].shift(1)`),
-            guildID
-          );
-        }
-      });
+  message.channel.send(`:arrow_forward:  ${serverQueue.songs[0].url}`);
+  const dispatcher = serverQueue.connection
+    .playStream(ytdl(serverQueue.songs[0].url), streamOptions)
+    .on("end", () => {
+      serverQueue.songs.shift();
+      playMusic(guild, message);
     })
-    .catch(e => {
-      message.channel.send(`:exclamation: ${link} :exclamation:`);
-      message.channel.send(":musical_note: Enter valid query!");
+    .on("error", error => {
+      console.error(error);
     });
+  dispatcher.setVolume(serverQueue.volume);
 };
 
-module.exports.leave = (message, client) => {
-  let vc = message.member.voiceChannelID;
-  const channel = client.channels.get(vc);
-  playStatus = false;
+module.exports.leave = async (message, client) => {
+  const channel = client.channels.get(message.member.voiceChannelID);
   channel.leave();
+  queue.delete(message.guild.id);
+  return;
 };
 
 module.exports.skip = async message => {
-  let guildID = message.guild.id;
-  message.channel.send("▶▶ Skipped!");
-  dispatcher.end();
+  const serverQueue = queue.get(message.guild.id);
+  try {
+    message.channel.send("▶▶ Skipped!");
+    serverQueue.connection.dispatcher.end();
+  } catch (err) {}
+};
+
+module.exports.volume = async message => {
+  const serverQueue = queue.get(message.guild.id);
+  let volume = message.content.split(" ")[1];
+  serverQueue.connection.dispatcher.setVolume(volume);
+};
+
+module.exports.clearq = async message => {
+  const serverQueue = queue.get(message.guild.id);
+  serverQueue.songs = [];
+};
+
+module.exports.showq = async (message, client) => {
+  const serverQueue = queue.get(message.guild.id);
+  const arr = [];
+  for (let i = 0; i < serverQueue.songs.length; i++) {
+    if (i == 0) {
+      let tmp = {
+        name: "Current: `" + serverQueue.songs[i].title + "`",
+        value: "--------------------------------------"
+      };
+      arr.push(tmp);
+    } else {
+      let tmp = {
+        name: i + ": `" + serverQueue.songs[i].title + "`",
+        value: "--------------------------------------"
+      };
+      arr.push(tmp);
+    }
+  }
+  message.channel
+    .send({
+      embed: {
+        color: 3447003,
+        author: {
+          name: "Actual Queue",
+          icon_url: client.user.avatarURL
+        },
+        fields: arr,
+        timestamp: new Date(),
+        footer: {
+          text: "© Mariusz Bot"
+        }
+      }
+    })
+    .catch(e => {
+      console.log(e);
+    });
 };
