@@ -1,6 +1,6 @@
 # Discord Bot
 
-> Bot is creating for my discord server mainly but i make it public`
+> Bot were created for my discord server mainly but i make it public`
 
 > > Commands for now
 
