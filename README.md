@@ -8,7 +8,7 @@
 
 <h4>Basic Commands</h4>
 
-> `help` -> List all commands <br/> >`say` -> allows writing messages throught bot on specific channels e.g //say general "dick" <br/> >`purge` -> deleting specified amount of messages on channel where we typed this command e.g //purge 10<br/> >`calc` -> making calculation on numbers whitch we provide e.g //calc 10+10\*2 And bot respond "Result: 30"
+> `help` -> List all commands <br/> >`say` -> allows writing messages throught bot on specific channels e.g //say general "hello" <br/> >`purge` -> deleting specified amount of messages on channel where we typed this command e.g //purge 10<br/> >`calc` -> making calculation on numbers whitch we provide e.g //calc 10+10\*2 And bot respond "Result: 30"
 
 <h4>Music Commands</h4>
 
@@ -21,4 +21,3 @@
 <h5>Additional Info</h5>
 
 > The functions will be added as much as I can think of and for the bot to be stable<br/>
-> You can also join my discord and test that out :)<br/> >https://discordapp.com/invite/CpBNXF4
